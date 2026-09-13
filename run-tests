@@ -1,0 +1,53 @@
+#!/usr/bin/env -S emacs --script
+
+;;; run-tests --- Run the telega-bot ERT test suite -*- lexical-binding: t; -*-
+
+;;; Commentary:
+;;
+;; Standalone test runner for telega-bot. Installs package dependencies
+;; (telega, alert) via package.el into .deps/elpa when missing, then loads
+;; test files and executes the test suite.
+
+;;; Code:
+
+(require 'seq)
+(require 'ert)
+(require 'package)
+
+(defconst telega-bot-test-runner--root
+  (file-name-directory (or load-file-name buffer-file-name))
+  "Directory this script lives in -- the telega-bot package root.")
+
+(defconst telega-bot-test-runner--deps-dir
+  (expand-file-name ".deps" telega-bot-test-runner--root)
+  "Directory holding fetched dependencies, gitignored and cached across runs.")
+
+(defconst telega-bot-test-runner--packages
+  '(telega alert)
+  "Packages fetched from GNU ELPA/MELPA via package.el.")
+
+(defun telega-bot-test-runner--ensure-packages ()
+  "Install any missing PACKAGES into `package-user-dir', then load them."
+  (setq package-user-dir (expand-file-name "elpa" telega-bot-test-runner--deps-dir))
+  (setq package-archives '(("gnu" . "https://elpa.gnu.org/packages/")
+                           ("melpa" . "https://melpa.org/packages/")
+                           ("nongnu" . "https://elpa.nongnu.org/nongnu/")))
+  (setq package-check-signature nil)
+  (package-initialize)
+  (let ((missing (seq-remove #'package-installed-p telega-bot-test-runner--packages)))
+    (when missing
+      (package-refresh-contents)
+      (seq-do #'package-install missing)
+      (package-initialize))))
+
+(telega-bot-test-runner--ensure-packages)
+
+(add-to-list 'load-path telega-bot-test-runner--root)
+
+(seq-do (lambda (file) (load file nil t))
+        (directory-files (file-name-concat telega-bot-test-runner--root "test")
+                         t "\\`test-.*\\.el\\'"))
+
+(ert-run-tests-batch-and-exit "^telega-bot")
+
+;;; run-tests ends here
