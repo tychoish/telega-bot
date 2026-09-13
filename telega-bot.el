@@ -113,6 +113,7 @@
   (fallback nil :type (or null function) :documentation "Fallback handler function called when no other handler matches.")
   (active nil :type boolean :documentation "Boolean flag indicating whether the bot is currently active and connected."))
 
+;;;###autoload
 (cl-defun make-telega-bot (&key (name "Telega Bot") token fallback active)
   "Create a new `telega-bot' and register it in `telega-bot-registry'."
   (let ((bot (make-telega-bot--raw
@@ -368,6 +369,7 @@ ROWS supports inline function responses; see `telega-bot-keyboard-rows'."
                    (telega-bot-ask-yes-or-no q-arg :on-yes on-yes :on-no on-no :yes-label yes-label :no-label no-label :bot bot :chat-id chat-id :thread-id thread-id)))
          ,@body))))
 
+;;;###autoload
 (cl-defmacro telega-bot-register-handler (name bot-or-name &rest spec &key (operation :command) pattern state args &allow-other-keys)
   "Register handler NAME for BOT-OR-NAME."
   (declare (indent 2))
@@ -616,6 +618,7 @@ ROWS supports inline function responses; see `telega-bot-keyboard-rows'."
     (when-let* ((bot (cdr cell)))
       (telega-bot-dispatch bot update))))
 
+;;;###autoload
 (defun telega-bot-activate (bot-or-name)
   "Activate bot by instance or name and attach global update hook."
   (let ((bot (telega-bot-get bot-or-name)))
@@ -627,6 +630,7 @@ ROWS supports inline function responses; see `telega-bot-keyboard-rows'."
         (setf (telega-bot-active bot) t)
       (add-hook 'telega-ready-hook #'telega-bot--ready-handler))))
 
+;;;###autoload
 (defun telega-bot-deactivate (bot-or-name)
   "Deactivate bot by instance or name and detach global update hook if registry is empty."
   (let ((bot (telega-bot-get bot-or-name)))

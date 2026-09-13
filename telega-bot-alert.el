@@ -64,6 +64,7 @@
 When nil, alerts without an explicit `:targets' selection are delivered to
 every target in `telega-bot-alert-targets'.")
 
+;;;###autoload
 (cl-defun telega-bot-alert-register-target (&key name bot chat-id thread-id)
   "Register a telega-bot alert target NAME delivering to BOT/CHAT-ID/THREAD-ID."
   (unless (and name bot chat-id)
@@ -110,6 +111,7 @@ every target in `telega-bot-alert-targets'.")
 (alert-define-style 'telega-bot :title "Deliver via telega-bot"
                     :notifier #'telega-bot-alert--notify)
 
+;;;###autoload
 (cl-defun telega-bot-alert (message &key title severity category targets)
   "Send MESSAGE as a telega-bot alert, optionally restricted to TARGETS."
   (alert message
