@@ -3,7 +3,7 @@
 ;; Author: sam kleinman <sam@tychoish.com>
 ;; Maintainer: sam kleinman <sam@tychoish.com>
 ;; Version: 0.1.0
-;; Package-Requires: ((emacs "29.1") (telega "0.8.0"))
+;; Package-Requires: ((emacs "29.1") (telega "0.8.0") (alert "1.2"))
 ;; Keywords: comm, tools, telegram
 ;; URL: https://github.com/tychoish/telega-bot
 
