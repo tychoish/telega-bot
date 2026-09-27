@@ -607,7 +607,7 @@ ROWS supports inline function responses; see `telega-bot-keyboard-rows'."
 
 (defun telega-bot-dispatch (bot update)
   "Main event router using `cond` branching."
-  (when-let* ((_ (telega-bot-active bot))
+  (when-let* (((telega-bot-active bot))
               (type (map-elt update :@type)))
     (cond
      ((string-equal type "updateNewMessage")
