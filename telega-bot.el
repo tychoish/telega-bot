@@ -92,6 +92,16 @@
 (require 'telega-chat)
 (require 'map)
 
+(declare-function telega-server-send "telega-server")
+(declare-function telega-server-live-p "telega-server")
+(declare-function telega-chat-send-message "telega-chat")
+(declare-function telega-chat-get "telega-chat")
+(declare-function agent-shell-ask-question-p "agent-shell-ask")
+(declare-function agent-shell-ask-question-prompt "agent-shell-ask")
+(declare-function agent-shell-ask-question-id "agent-shell-ask")
+(declare-function agent-shell-ask-question-kind "agent-shell-ask")
+(declare-function agent-shell-ask-question-options "agent-shell-ask")
+
 ;;; Registry
 
 (defvar telega-bot-registry nil
@@ -114,7 +124,7 @@
   (active nil :type boolean :documentation "Boolean flag indicating whether the bot is currently active and connected."))
 
 ;;;###autoload
-(cl-defun make-telega-bot (&key (name "Telega Bot") token fallback active)
+(cl-defun telega-bot-create (&key (name "Telega Bot") token fallback active)
   "Create a new `telega-bot' and register it in `telega-bot-registry'."
   (let ((bot (make-telega-bot--raw
               :name name
@@ -123,6 +133,7 @@
               :active active)))
     (telega-bot-register bot name)
     bot))
+
 
 (defun telega-bot-register (bot &optional name)
   "Register BOT in `telega-bot-registry' under NAME (defaults to bot's name)."
@@ -490,7 +501,7 @@ ROWS supports inline function responses; see `telega-bot-keyboard-rows'."
         first-word))))
 
 (defun telega-bot--find-message-handler (bot text)
-  "Find message handler using exact slash-command hash lookup, with fuzzy/regex fallback."
+  "Find handler using slash command lookup with fuzzy/regex fallback."
   (or
    ;; 1. Slash command lookup
    (when-let* ((cmd (telega-bot--extract-command text)))
@@ -576,7 +587,7 @@ ROWS supports inline function responses; see `telega-bot-keyboard-rows'."
         (funcall (telega-bot-fallback bot) :bot bot :text text :thread-id thread-id :msg-id msg-id :msg msg :chat-id chat-id :user-id user-id))))))
 
 (defun telega-bot--dispatch-callback (bot update)
-  "Route inline keyboard button presses, auto-answering and auto-deleting keyboards."
+  "Route inline keyboard button presses, handling responses."
   (when-let* ((query-id (map-elt update :id))
               (chat-id (map-elt update :chat_id))
               (user-id (map-elt update :sender_user_id))
@@ -632,7 +643,7 @@ ROWS supports inline function responses; see `telega-bot-keyboard-rows'."
 
 ;;;###autoload
 (defun telega-bot-deactivate (bot-or-name)
-  "Deactivate bot by instance or name and detach global update hook if registry is empty."
+  "Deactivate bot by instance or name and detach hook if registry is empty."
   (let ((bot (telega-bot-get bot-or-name)))
     (when bot
       (setf (telega-bot-active bot) nil)
@@ -645,8 +656,8 @@ ROWS supports inline function responses; see `telega-bot-keyboard-rows'."
 
 (defun telega-bot-ask-question (bot chat-id q)
   "Send question Q to Telegram CHAT-ID using BOT.
-For 'single-choice and 'boolean, renders inline keyboard buttons.
-For 'text, registers a step state to capture response text."
+For \='single-choice and \='boolean, renders inline keyboard buttons.
+For \='text, registers a step state to capture response text."
   (when (and bot (featurep 'telega-bot) (fboundp 'agent-shell-ask-question-p))
     (let* ((prompt (agent-shell-ask-question-prompt q))
            (qid (agent-shell-ask-question-id q))
@@ -661,10 +672,13 @@ For 'text, registers a step state to capture response text."
                                                 (val (if (consp opt) (cdr opt) opt)))
                                             (cons label (format "ask:%s:%s" qid val))))
                                         options)))))
-           (ignore-errors
-             (telega-bot-send-message bot chat-id (format "❓ %s" prompt) :reply-markup `(:inline_keyboard ,buttons)))))
+           (telega-bot-send-response (format "❓ %s" prompt)
+                                     :bot bot
+                                     :chat-id chat-id
+                                     :keyboard `(:inline_keyboard ,buttons))))
         (_
-         (ignore-errors
-           (telega-bot-send-message bot chat-id (format "❓ %s\n(Reply with text)" prompt))))))))
+         (telega-bot-send-response (format "❓ %s\n(Reply with text)" prompt)
+                                   :bot bot
+                                   :chat-id chat-id))))))
 (provide 'telega-bot)
 ;;; telega-bot.el ends here

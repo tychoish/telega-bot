@@ -1,4 +1,4 @@
-;;; telega-bot-alert.el --- alert.el backend that delivers via telega-bot -*- lexical-binding: t; -*-
+;;; telega-bot-alert.el --- Alert.el backend that delivers via telega-bot -*- lexical-binding: t; -*-
 
 ;; Author: sam kleinman <sam@tychoish.com>
 ;; Maintainer: sam kleinman <sam@tychoish.com>

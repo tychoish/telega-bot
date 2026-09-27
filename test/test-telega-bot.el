@@ -8,7 +8,7 @@
 (ert-deftest telega-bot/registry-and-creation ()
   "Test that bot creation automatically registers in `telega-bot-registry'."
   (let ((telega-bot-registry nil))
-    (let ((bot (make-telega-bot :name "AutoBot" :token "tok-123")))
+    (let ((bot (telega-bot-create :name "AutoBot" :token "tok-123")))
       (should (string-equal (telega-bot-name bot) "AutoBot"))
       (should (eq (telega-bot-get "AutoBot") bot))
       (should (eq (telega-bot-get 'AutoBot) bot))
@@ -21,7 +21,7 @@
 (ert-deftest telega-bot/register-handler-macro ()
   "Test the `telega-bot-register-handler' macro across all operations."
   (let ((telega-bot-registry nil))
-    (let ((bot (make-telega-bot :name "MacroBot" :active t))
+    (let ((bot (telega-bot-create :name "MacroBot" :active t))
           (ran-cmd nil)
           (ran-cb nil)
           (ran-fuzzy nil)
@@ -83,8 +83,8 @@
 (ert-deftest telega-bot/multi-bot-generic-fsm-isolation ()
   "Test generic FSM methods specialized to specific bots in the registry."
   (let ((telega-bot-registry nil))
-    (let ((bot-a (make-telega-bot :name "BotA" :active t))
-          (bot-b (make-telega-bot :name "BotB" :active t))
+    (let ((bot-a (telega-bot-create :name "BotA" :active t))
+          (bot-b (telega-bot-create :name "BotB" :active t))
           (res-a nil)
           (res-b nil))
       ;; Register identical step name for BotA and BotB with distinct behaviors
@@ -119,7 +119,7 @@
 
 (ert-deftest telega-bot/scoped-response-and-logging ()
   "Test that handlers can call `send-response` without managing chat/thread IDs."
-  (let* ((bot (make-telega-bot :name "ScopedBot" :active t))
+  (let* ((bot (telega-bot-create :name "ScopedBot" :active t))
          (buf-name "*telega-bot-ScopedBot*")
          (sent-msg nil))
     (when (get-buffer buf-name)
@@ -157,7 +157,7 @@
 
 (ert-deftest telega-bot/fast-hash-and-fuzzy-command-dispatch ()
   "Test hash map O(1) command matching and fuzzy/case-insensitive matching."
-  (let ((bot (make-telega-bot :name "FastBot" :active t))
+  (let ((bot (telega-bot-create :name "FastBot" :active t))
         (cmd-called nil))
     (telega-bot-register-handler status-cmd 'FastBot
       :operation :command
@@ -196,7 +196,7 @@
 
 (ert-deftest telega-bot/auto-delete-keyboard-on-callback ()
   "Test that callbacks auto-delete their inline keyboards and stop spinners."
-  (let ((bot (make-telega-bot :name "CbBot" :active t))
+  (let ((bot (telega-bot-create :name "CbBot" :active t))
         (server-calls nil)
         (cb-ran nil))
     (telega-bot-register-handler approve-cmd 'CbBot
@@ -229,7 +229,7 @@
 
 (ert-deftest telega-bot/ask-yes-or-no-interaction ()
   "Test the `ask-yes-or-no` helper with callback triggering."
-  (let ((bot (make-telega-bot :name "YonBot" :active t))
+  (let ((bot (telega-bot-create :name "YonBot" :active t))
         (yes-triggered nil)
         (no-triggered nil)
         (sent-kb-rows nil))
@@ -279,7 +279,7 @@
 
 (ert-deftest telega-bot/activation-and-connection-lifecycle ()
   "Test bot activation and connection readiness latching by bot name and instance."
-  (let ((bot (make-telega-bot :name "LifecycleBot"))
+  (let ((bot (telega-bot-create :name "LifecycleBot"))
         (telega-ready-hook nil))
     (cl-letf (((symbol-function 'telega-server-live-p) (lambda () nil))
               ((symbol-function 'add-hook) (lambda (hook fn &rest _args)
@@ -309,7 +309,7 @@
   (should-not (boundp 'telega-bot--current-msg))
   (should-not (boundp 'telega-bot--current-update))
 
-  (let ((bot (make-telega-bot :name "LexicalBot" :active t))
+  (let ((bot (telega-bot-create :name "LexicalBot" :active t))
         (received-chat nil)
         (received-text nil)
         (received-user nil))
@@ -338,7 +338,7 @@
 
 (ert-deftest telega-bot/inline-function-keyboard-buttons ()
   "Test that `telega-bot-send-keyboard' auto-registers function responses."
-  (let ((bot (make-telega-bot :name "KbBot" :active t))
+  (let ((bot (telega-bot-create :name "KbBot" :active t))
         (yes-triggered nil)
         (sent-kb-rows nil))
     (cl-letf (((symbol-function 'telega-chat-get) (lambda (id) id))
